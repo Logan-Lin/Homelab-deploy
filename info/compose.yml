@@ -1,0 +1,84 @@
+services:
+  rss:
+    image: 'miniflux/miniflux:latest'
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=postgres://miniflux:miniflux@db/miniflux?sslmode=disable
+      - ADMIN_USERNAME=${USERNAME}
+      - ADMIN_PASSWORD=${PASSWORD}
+      - BASE_URL=${RSS_BASE_URL}
+      - CREATE_ADMIN=1
+      - RUN_MIGRATIONS=1
+      - HTTP_CLIENT_TIMEOUT=50000
+      - POLLING_FREQUENCY=${RSS_POLLING_FREQUENCY}
+      - CLEANUP_FREQUENCY_HOURS=${RSS_CLEANUP_FREQUENCY_HOURS}
+      - CLEANUP_ARCHIVE_READ_DAYS=${RSS_CLEANUP_ARCHIVE_READ_DAYS}
+      - CLEANUP_REMOVE_SESSIONS_DAYS=${RSS_CLEANUP_REMOVE_SESSIONS_DAYS}
+    depends_on:
+      db:
+        condition: service_healthy
+      hub:
+        condition: service_healthy
+    networks:
+      default: {}
+      br0: 
+        ipv4_address: ${RSS_IP}
+
+  link:
+    image: sissbruecker/linkding:latest-plus
+    volumes:
+      - ./data/link:/etc/linkding/data
+    restart: unless-stopped
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${LINK_IP}
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      - POSTGRES_USER=miniflux
+      - POSTGRES_PASSWORD=miniflux
+      - POSTGRES_DB=miniflux
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "miniflux"]
+      interval: 10s
+      start_period: 30s
+
+  hub:
+    image: diygod/rsshub:chromium-bundled
+    restart: unless-stopped
+    depends_on:
+      redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - CACHE_TYPE=redis
+      - CACHE_EXPIRE=5 * 60
+      - REDIS_URL=redis://redis:6379/
+      - REQUEST_RETRY=10
+      - REQUEST_TIMEOUT=5000
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:1200/healthz"]
+        interval: 30s
+        timeout: 10s
+        retries: 3
+  
+  redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    volumes:
+      - ./data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+networks:
+  br0:
+    external: true

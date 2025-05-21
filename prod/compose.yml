@@ -1,0 +1,98 @@
+services:
+  paperless:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    environment:
+      - PAPERLESS_REDIS=redis://pl-redis:6379
+      - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE}
+      - PAPERLESS_OCR_LANGUAGES=${PAPERLESS_OCR_INSTALL}
+      - PAPERLESS_FILENAME_FORMAT={{ created }}-{{ correspondent }}-{{ title }}
+      - PAPERLESS_TIME_ZONE=${TZ}
+      - PAPERLESS_URL=https://${PAPERLESS_HOST}
+      - PAPERLESS_CSRF_TRUSTED_ORIGINS=https://${PAPERLESS_HOST}
+      - PAPERLESS_ALLOWED_HOSTS=${PAPERLESS_HOST}
+      - PAPERLESS_CORS_ALLOWED_HOSTS=https://${PAPERLESS_HOST}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - CA_TS_FALLBACK_DIR=/usr/src/paperless/data
+    volumes:
+      - ./data/paperless/config:/usr/src/paperless/data
+      - ${PAPERLESS_MEDIA_PATH}:/usr/src/paperless/media
+      - ${PAPERLESS_CONSUME_PATH}:/usr/src/paperless/consume
+      - ${PAPERLESS_EXPORT_PATH}:/usr/src/paperless/export
+    depends_on:
+      pl-redis:
+        condition: service_healthy
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${PAPERLESS_IP}
+  
+  pl-redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+  
+  gitea:
+    image: gitea/gitea:latest
+    restart: unless-stopped
+    volumes:
+      - ./data/gitea/config:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${GITEA_IP}
+
+  docmost:
+    image: docmost/docmost:latest
+    restart: unless-stopped
+    environment:
+      APP_SECRET: "de537f51aca7da2db8cbe71d76698470da575e2b11a265af59ee40175a148458"
+      DATABASE_URL: "postgresql://docmost:docmost@docmost-db:5432/docmost?schema=public"
+      REDIS_URL: "redis://docmost-redis:6379"
+    depends_on:
+      docmost-db:
+        condition: service_healthy
+      docmost-redis:
+        condition: service_healthy
+    volumes:
+      - ./data/docmost/storage:/app/data/storage
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${DOCMOST_IP}
+
+  docmost-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: docmost
+      POSTGRES_USER: docmost
+      POSTGRES_PASSWORD: docmost
+    volumes:
+      - ./data/docmost/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "docmost"]
+      interval: 10s
+      start_period: 30s
+
+  docmost-redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+
+networks:
+  br0:
+    external: true

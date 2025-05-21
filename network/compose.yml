@@ -1,0 +1,53 @@
+services:
+  proxy:
+    image: 'jc21/nginx-proxy-manager:latest'
+    restart: unless-stopped
+    environment:
+      - DB_SQLITE_FILE=/data/database.sqlite
+    volumes:
+      - ./data/nginx/config:/data
+      - ./data/nginx/letsencrypt:/etc/letsencrypt
+      - ./data/nginx/log:/var/log
+    networks:
+      br0:
+        ipv4_address: ${PROXY_IP}
+
+  watchtower:
+    image: containrrr/watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_SCHEDULE=${WATCHTOWER_SCHEDULE}
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_TIMEOUT=30s
+      - TZ=${TZ}
+
+  pihole:
+    image: pihole/pihole:latest
+    restart: unless-stopped
+    environment:
+      - DNSMASQ_LISTENING=all
+    volumes:
+      - ./data/pihole/config:/etc/pihole
+      - ./data/pihole/dns:/etc/dnsmasq.d
+    networks:
+      br0:
+        ipv4_address: ${PIHOLE_IP}
+  
+  sync:
+    image: ghcr.io/lovelaze/nebula-sync:latest
+    restart: unless-stopped
+    environment:
+      - PRIMARY=http://${PIHOLE_IP}|${PIHOLE_PASSWORD}
+      - REPLICAS=${REP_PIHOLE_LIST}
+      - TZ=${TZ}
+      - CRON=${SYNC_CRON}
+      - FULL_SYNC=true
+    networks:
+      br0:
+        ipv4_address: ${SYNC_IP}
+
+networks:
+  br0:
+    external: true

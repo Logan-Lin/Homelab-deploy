@@ -1,0 +1,83 @@
+services:
+  cloud:
+    image: linuxserver/nextcloud:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/cloud:/config
+      - ${CLOUD_DATA}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${CLOUD_IP}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: linuxserver/mariadb:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - MYSQL_ROOT_PASSWORD=nextcloud
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=nextcloud
+      - MYSQL_PASSWORD=nextcloud
+    volumes:
+      - ./data/db:/config
+    restart: unless-stopped
+  
+  webdav:
+    image: apachewebdav/apachewebdav
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - USERNAME=${USERNAME}
+      - PASSWORD=${PASSWORD}
+      - AUTH_TYPE=Basic
+      - LOCATION=/
+    volumes:
+      - ./data/webdav:/var/lib/dav
+      - ${WEBDAV_DATA}:/var/lib/dav/data
+      - ${WEBDAV_BOOK_DATA}:/var/lib/dav/data/book
+    networks:
+      br0:
+        ipv4_address: ${WEBDAV_IP}
+    restart: unless-stopped
+
+  syncthing:
+    image: linuxserver/syncthing:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/syncthing:/config
+      - ${SYNCTHING_DATA}:/docs
+    networks:
+      br0:
+        ipv4_address: ${SYNCTHING_IP}
+  
+  borg:
+    image: ghcr.io/borgmatic-collective/borgmatic:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - /boot:/boot:ro
+      - /mnt/user:/mnt/user:ro
+      - ./data/borg/cache:/root/.cache/borg
+      - ./data/borg/config:/etc/borgmatic.d
+      - ./data/borg/borg_keys:/root/.config/borg
+      - ./data/borg/ssh_keys:/root/.ssh
+    devices:
+      - /dev/fuse:/dev/fuse
+
+
+networks:
+  br0:
+    external: true
+

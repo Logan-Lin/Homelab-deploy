@@ -1,0 +1,176 @@
+services:
+  plex:
+    image: linuxserver/plex:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - VERSION=docker
+    volumes:
+      - ./data/plex/config:/config
+      - ${PLEX_TRANSCODE_PATH}:/transcode
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${PLEX_IP}
+    devices:
+      - /dev/dri:/dev/dri
+
+  emby:
+    image: amilys/embyserver:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/emby/config:/config
+      - ${EMBY_TRANSCODE_PATH}:/transcode
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${EMBY_IP}
+    devices:
+      - /dev/dri:/dev/dri
+  
+  audio:
+    image: ghcr.io/advplyr/audiobookshelf
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/audio/config:/config
+      - ./data/audio/metadata:/metadata
+      - ${PODCAST_PATH}:/podcast
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${AUDIO_IP}
+  
+  sonarr:
+    image: linuxserver/sonarr:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/sonarr/config:/config
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${SONARR_IP}
+
+  radarr:
+    image: linuxserver/radarr:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/radarr/config:/config
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${RADARR_IP}
+
+  lidarr:
+    image: linuxserver/lidarr:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/lidarr/config:/config
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${LIDARR_IP}
+
+  bazarr:
+    image: linuxserver/bazarr:latest
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./data/bazarr/config:/config
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${BAZARR_IP}
+  
+  qbit:
+    image: linuxserver/qbittorrent:4.6.7
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TORRENTING_PORT=${QBIT_TORRENT_PORT}
+      - WEBUI_PORT=8080
+    volumes:
+      - ./data/qbit/config:/config
+      - ${MEDIA_PATH}:/data
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${QBIT_IP}
+  
+  immich:
+    image: ghcr.io/imagegenius/immich
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - DB_HOSTNAME=immich-db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_DATABASE_NAME=postgres
+      - DB_PORT=5432
+      - REDIS_HOSTNAME=immich-redis
+      - REDIS_PORT=6379
+      - MACHINE_LEARNING_HOST=0.0.0.0
+      - MACHINE_LEARNING_PORT=3003
+      - MACHINE_LEARNING_WORKERS=1
+      - MACHINE_LEARNING_WORKER_TIMEOUT=120
+    volumes:
+      - ./data/immich/config:/config
+      - ${PHOTO_PATH}:/photos
+      - ${DCIM_PATH}:/libraries
+    devices:
+      - /dev/dri:/dev/dri
+    depends_on:
+      immich-db:
+        condition: service_healthy
+      immich-redis:
+        condition: service_healthy
+    networks:
+      default: {}
+      br0:
+        ipv4_address: ${IMMICH_IP}
+
+  immich-db:
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0
+    restart: unless-stopped
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=postgres
+    volumes:
+      - ./data/immich/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 10s
+      start_period: 30s
+
+  immich-redis:
+    image: redis:7.2-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 5s
+
+
+networks:
+  br0:
+    external: true
