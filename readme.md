@@ -67,6 +67,3 @@ A collection of services for productivity.
 Contains:
 - paperless: scanned document management
 - paperless-redis: redis for paperless
-- docmost: collaborative document editor
-- docmost-db: database for docmost
-- docmost-redis: redis for docmost
