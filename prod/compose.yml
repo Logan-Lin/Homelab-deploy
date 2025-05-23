@@ -28,6 +28,10 @@ services:
       default: {}
       br0:
         ipv4_address: ${PAPERLESS_IP}
+    deploy:
+      resources:
+        limits:
+          cpus: 4
   
   paperless-redis:
     image: redis:7.2-alpine
