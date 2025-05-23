@@ -21,9 +21,8 @@ services:
       hub:
         condition: service_healthy
     networks:
-      default: {}
-      br0: 
-        ipv4_address: ${RSS_IP}
+      - default
+      - proxy
 
   # Bookmark manager
   link:
@@ -32,9 +31,8 @@ services:
       - ./data/link:/etc/linkding/data
     restart: unless-stopped
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${LINK_IP}
+      - default
+      - proxy
 
   # Database for miniflux
   db:
@@ -86,4 +84,6 @@ services:
 
 networks:
   br0:
+    external: true
+  proxy:
     external: true

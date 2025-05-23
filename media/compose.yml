@@ -10,10 +10,11 @@ services:
       - ./data/plex/config:/config
       - ${PLEX_TRANSCODE_PATH}:/transcode
       - ${MEDIA_PATH}:/data
+    ports:
+      - "32400:32400"
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${PLEX_IP}
+      - default
+      - proxy
     devices:
       - /dev/dri:/dev/dri
 
@@ -27,10 +28,11 @@ services:
       - ./data/emby/config:/config
       - ${EMBY_TRANSCODE_PATH}:/transcode
       - ${MEDIA_PATH}:/data
+    ports:
+      - "8096:8096"
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${EMBY_IP}
+      - default
+      - proxy
     devices:
       - /dev/dri:/dev/dri
   
@@ -45,9 +47,8 @@ services:
       - ./data/audio/metadata:/metadata
       - ${PODCAST_PATH}:/podcast
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${AUDIO_IP}
+      - default
+      - proxy
   
   # TV show management system
   sonarr:
@@ -59,9 +60,8 @@ services:
       - ./data/sonarr/config:/config
       - ${MEDIA_PATH}:/data
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${SONARR_IP}
+      - default
+      - proxy
 
   # Movie management system
   radarr:
@@ -73,9 +73,8 @@ services:
       - ./data/radarr/config:/config
       - ${MEDIA_PATH}:/data
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${RADARR_IP}
+      - default
+      - proxy
 
   # Music management system
   lidarr:
@@ -87,9 +86,8 @@ services:
       - ./data/lidarr/config:/config
       - ${MEDIA_PATH}:/data
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${LIDARR_IP}
+      - default
+      - proxy
 
   # Subtitle management system
   bazarr:
@@ -101,9 +99,8 @@ services:
       - ./data/bazarr/config:/config
       - ${MEDIA_PATH}:/data
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${BAZARR_IP}
+      - default
+      - proxy
   
   # Torrent download client
   qbit:
@@ -116,10 +113,11 @@ services:
     volumes:
       - ./data/qbit/config:/config
       - ${MEDIA_PATH}:/data
+    ports:
+      - "${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}"
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${QBIT_IP}
+      - default
+      - proxy
   
   # Home photo and video backup system
   immich:
@@ -143,6 +141,8 @@ services:
       - ./data/immich/config:/config
       - ${PHOTO_PATH}:/photos
       - ${DCIM_PATH}:/libraries
+    ports:
+      - "5000:8080"
     devices:
       - /dev/dri:/dev/dri
     depends_on:
@@ -151,9 +151,8 @@ services:
       immich-redis:
         condition: service_healthy
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${IMMICH_IP}
+      - default
+      - proxy
 
   # Database for immich, with vector extension for context search
   immich-db:
@@ -184,4 +183,6 @@ services:
 
 networks:
   br0:
+    external: true
+  proxy:
     external: true

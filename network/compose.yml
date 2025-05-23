@@ -10,6 +10,8 @@ services:
       - ./data/nginx/letsencrypt:/etc/letsencrypt
       - ./data/nginx/log:/var/log
     networks:
+      default: {}
+      proxy: {}
       br0:
         ipv4_address: ${PROXY_IP}
 
@@ -52,10 +54,9 @@ services:
       - TZ=${TZ}
       - CRON=${SYNC_CRON}
       - FULL_SYNC=true
-    networks:
-      br0:
-        ipv4_address: ${SYNC_IP}
 
 networks:
   br0:
+    external: true
+  proxy:
     external: true

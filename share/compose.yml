@@ -2,19 +2,20 @@ services:
   # Cloud storage and direct link file sharing
   cloud:
     image: linuxserver/nextcloud:latest
+    restart: unless-stopped
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
     volumes:
       - ./data/cloud:/config
       - ${CLOUD_DATA}:/data
+    ports:
+      - "5001:80"
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${CLOUD_IP}
+      - default
+      - proxy
     depends_on:
       - db
-    restart: unless-stopped
 
   # Database for cloud
   db:
@@ -45,8 +46,8 @@ services:
       - ${WEBDAV_DATA}:/var/lib/dav/data
       - ${WEBDAV_BOOK_DATA}:/var/lib/dav/data/book
     networks:
-      br0:
-        ipv4_address: ${WEBDAV_IP}
+      - default
+      - proxy
     restart: unless-stopped
 
   # P2P file sync service
@@ -59,9 +60,12 @@ services:
     volumes:
       - ./data/syncthing:/config
       - ${SYNCTHING_DATA}:/docs
+    ports:
+      - "22000:22000"
+      - "21027:21027/udp"
     networks:
-      br0:
-        ipv4_address: ${SYNCTHING_IP}
+      - default
+      - proxy
   
   # Snapshot and end-to-end encrypted backup service
   borg:
@@ -85,4 +89,5 @@ services:
 networks:
   br0:
     external: true
-
+  proxy:
+    external: true

@@ -1,7 +1,9 @@
 There are two ways to build the proxy network:
 
 1. All services communicate through the `proxy` network. This requires setup of this network with cli: `docker network create proxy --driver bridge`.
-2. Each web service gets its dedicated IP address through the `br0` network through the `macvlan` driver, which is currently what I am using.
+2. Each web service gets its dedicated IP address through the `br0` network through the `macvlan` driver.
+
+I am using a mix of both. You can actually attach a container to both types of networks at the same time.
 
 
 # Sevice stacks

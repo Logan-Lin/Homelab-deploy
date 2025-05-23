@@ -26,9 +26,8 @@ services:
       paperless-redis:
         condition: service_healthy
     networks:
-      default: {}
-      br0:
-        ipv4_address: ${PAPERLESS_IP}
+      - default
+      - proxy
     deploy:
       resources:
         limits:
@@ -48,4 +47,6 @@ services:
 
 networks:
   br0:
+    external: true
+  proxy:
     external: true

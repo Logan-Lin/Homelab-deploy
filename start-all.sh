@@ -1,6 +1,6 @@
 #!/bin/bash
 
-directories=("info" "share" "media" "network" "prod")
+directories=("network" "info" "share" "media" "prod")
 
 for dir in "${directories[@]}"; do
   cd "$dir"
