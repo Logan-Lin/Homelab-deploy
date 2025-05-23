@@ -1,4 +1,5 @@
 services:
+  # Cloud storage and direct link file sharing
   cloud:
     image: linuxserver/nextcloud:latest
     environment:
@@ -15,6 +16,7 @@ services:
       - db
     restart: unless-stopped
 
+  # Database for cloud
   db:
     image: linuxserver/mariadb:latest
     environment:
@@ -28,6 +30,7 @@ services:
       - ./data/db:/config
     restart: unless-stopped
   
+  # HTTP-based file server
   webdav:
     image: apachewebdav/apachewebdav
     environment:
@@ -46,6 +49,7 @@ services:
         ipv4_address: ${WEBDAV_IP}
     restart: unless-stopped
 
+  # P2P file sync service
   syncthing:
     image: linuxserver/syncthing:latest
     restart: unless-stopped
@@ -59,6 +63,7 @@ services:
       br0:
         ipv4_address: ${SYNCTHING_IP}
   
+  # Snapshot and end-to-end encrypted backup service
   borg:
     image: ghcr.io/borgmatic-collective/borgmatic:latest
     restart: unless-stopped

@@ -1,4 +1,5 @@
 services:
+  # Scanned document management system
   paperless:
     image: ghcr.io/paperless-ngx/paperless-ngx:latest
     restart: unless-stopped
@@ -33,6 +34,7 @@ services:
         limits:
           cpus: 4
   
+  # Redis for paperless
   paperless-redis:
     image: redis:7.2-alpine
     restart: unless-stopped

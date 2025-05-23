@@ -1,4 +1,5 @@
 services:
+  # Media server for TV shows, movies, and music
   plex:
     image: linuxserver/plex:latest
     environment:
@@ -16,6 +17,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
 
+  # Another media server
   emby:
     image: amilys/embyserver:latest
     environment:
@@ -32,6 +34,7 @@ services:
     devices:
       - /dev/dri:/dev/dri
   
+  # Audio server for podcasts and audiobooks
   audio:
     image: ghcr.io/advplyr/audiobookshelf
     environment:
@@ -46,6 +49,7 @@ services:
       br0:
         ipv4_address: ${AUDIO_IP}
   
+  # TV show management system
   sonarr:
     image: linuxserver/sonarr:latest
     environment:
@@ -59,6 +63,7 @@ services:
       br0:
         ipv4_address: ${SONARR_IP}
 
+  # Movie management system
   radarr:
     image: linuxserver/radarr:latest
     environment:
@@ -72,6 +77,7 @@ services:
       br0:
         ipv4_address: ${RADARR_IP}
 
+  # Music management system
   lidarr:
     image: linuxserver/lidarr:latest
     environment:
@@ -85,6 +91,7 @@ services:
       br0:
         ipv4_address: ${LIDARR_IP}
 
+  # Subtitle management system
   bazarr:
     image: linuxserver/bazarr:latest
     environment:
@@ -98,6 +105,7 @@ services:
       br0:
         ipv4_address: ${BAZARR_IP}
   
+  # Torrent download client
   qbit:
     image: linuxserver/qbittorrent:4.6.7
     environment:
@@ -113,6 +121,7 @@ services:
       br0:
         ipv4_address: ${QBIT_IP}
   
+  # Home photo and video backup system
   immich:
     image: ghcr.io/imagegenius/immich
     restart: unless-stopped
@@ -146,6 +155,7 @@ services:
       br0:
         ipv4_address: ${IMMICH_IP}
 
+  # Database for immich, with vector extension for context search
   immich-db:
     image: tensorchord/pgvecto-rs:pg14-v0.2.0
     restart: unless-stopped
@@ -160,6 +170,7 @@ services:
       interval: 10s
       start_period: 30s
 
+  # Redis for immich
   immich-redis:
     image: redis:7.2-alpine
     restart: unless-stopped

@@ -1,4 +1,5 @@
 services:
+  # Reverse proxy server
   proxy:
     image: 'jc21/nginx-proxy-manager:latest'
     restart: unless-stopped
@@ -12,6 +13,7 @@ services:
       br0:
         ipv4_address: ${PROXY_IP}
 
+  # Automatic container update service
   watchtower:
     image: containrrr/watchtower
     restart: unless-stopped
@@ -27,6 +29,7 @@ services:
       - WATCHTOWER_NOTIFICATION_GOTIFY_URL=${WATCHTOWER_GOTIFY_URL}
       - WATCHTOWER_NOTIFICATION_GOTIFY_TOKEN=${WATCHTOWER_GOTIFY_TOKEN}
 
+  # DNS-based ad blocker
   pihole:
     image: pihole/pihole:latest
     restart: unless-stopped
@@ -39,6 +42,7 @@ services:
       br0:
         ipv4_address: ${PIHOLE_IP}
   
+  # Synchronize pihole settings across nodes
   sync:
     image: ghcr.io/lovelaze/nebula-sync:latest
     restart: unless-stopped
