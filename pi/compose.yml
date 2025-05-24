@@ -1,0 +1,61 @@
+services:
+  npm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: npm
+    platform: linux/arm64
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - ./data/proxy/data:/data
+      - ./data/proxy/letsencrypt:/etc/letsencrypt
+  
+  pihole:
+    image: pihole/pihole:latest
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "67:67/udp"
+      - "8000:80/tcp"
+      - "4330:443/tcp"
+    dns:
+      - 127.0.0.1
+    environment:
+      - TZ=${TZ}
+      - DNSMASQ_LISTENING=all
+    volumes:
+      - ./data/pihole/etc-pihole:/etc/pihole
+      - ./data/pihole/etc-dnsmasq.d:/etc/dnsmasq.d
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+
+  borg:
+    image: ghcr.io/borgmatic-collective/borgmatic
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - BORG_PASSPHRASE=${BORG_PASSPHRASE}
+    volumes:
+      - /home/yanlin:/mnt/home:ro
+      - /etc:/mnt/etc:ro
+      - ./data/borg/borgmatic.d:/etc/borgmatic.d
+      - ./data/borg/repository:/mnt/borg-repository
+      - ./data/borg/.config:/root/.config
+      - ./data/borg/.ssh:/root/.ssh
+      - ./data/borg/.cache:/root/.cache/borg
+
+  syncthing:
+    image: syncthing/syncthing:latest
+    container_name: syncthing
+    hostname: Pi
+    environment:
+      - PUID=1000
+      - PGID=1000
+    volumes:
+      - ./data/syncthing/config:/var/syncthing/config
+      - ${DOC_PATH}:/data
+    restart: unless-stopped
+    network_mode: host

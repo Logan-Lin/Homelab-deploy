@@ -41,6 +41,8 @@ services:
       - ./data/pihole/config:/etc/pihole
       - ./data/pihole/dns:/etc/dnsmasq.d
     networks:
+      default: {}
+      proxy: {}
       br0:
         ipv4_address: ${PIHOLE_IP}
   

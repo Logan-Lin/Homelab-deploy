@@ -113,11 +113,11 @@ services:
     volumes:
       - ./data/qbit/config:/config
       - ${MEDIA_PATH}:/data
-    ports:
-      - "${QBIT_TORRENT_PORT}:${QBIT_TORRENT_PORT}"
     networks:
-      - default
-      - proxy
+      default: {}
+      proxy: {}
+      br0:
+        ipv4_address: ${QBIT_IP}
   
   # Home photo and video backup system
   immich:

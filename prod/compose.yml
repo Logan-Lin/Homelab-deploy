@@ -14,8 +14,8 @@ services:
       - PAPERLESS_ALLOWED_HOSTS=${PAPERLESS_HOST}
       - PAPERLESS_CORS_ALLOWED_HOSTS=https://${PAPERLESS_HOST}
       - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
-      - PUID=${PUID}
-      - PGID=${PGID}
+      - USERMAP_UID=${PUID}
+      - USERMAP_GID=${PGID}
       - CA_TS_FALLBACK_DIR=/usr/src/paperless/data
     volumes:
       - ./data/paperless/config:/usr/src/paperless/data

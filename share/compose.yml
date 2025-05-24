@@ -46,8 +46,10 @@ services:
       - ${WEBDAV_DATA}:/var/lib/dav/data
       - ${WEBDAV_BOOK_DATA}:/var/lib/dav/data/book
     networks:
-      - default
-      - proxy
+      default: {}
+      proxy: {}
+      br0:
+        ipv4_address: ${WEBDAV_IP}
     restart: unless-stopped
 
   # P2P file sync service
@@ -60,12 +62,11 @@ services:
     volumes:
       - ./data/syncthing:/config
       - ${SYNCTHING_DATA}:/docs
-    ports:
-      - "22000:22000"
-      - "21027:21027/udp"
     networks:
-      - default
-      - proxy
+      default: {}
+      proxy: {}
+      br0:
+        ipv4_address: ${SYNCTHING_IP}
   
   # Snapshot and end-to-end encrypted backup service
   borg:
