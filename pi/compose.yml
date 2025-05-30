@@ -3,6 +3,8 @@ services:
     image: 'jc21/nginx-proxy-manager:latest'
     platform: linux/arm64
     restart: unless-stopped
+    environment:
+      - TZ=${TZ}
     volumes:
       - ./data/proxy/data:/data
       - ./data/proxy/letsencrypt:/etc/letsencrypt
@@ -27,6 +29,7 @@ services:
     image: syncthing/syncthing:latest
     hostname: Pi
     environment:
+      - TZ=${TZ}
       - PUID=1000
       - PGID=1000
     volumes:
